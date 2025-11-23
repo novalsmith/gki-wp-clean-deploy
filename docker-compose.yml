@@ -1,0 +1,47 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: gkilahairoi-wordpress-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: gkiwp-2025-DB
+      MYSQL_USER: gkiwp-2025
+      MYSQL_PASSWORD: 'gkiwp-2025' # GANTI DENGAN PASSWORD AMAN!
+      MYSQL_ROOT_PASSWORD: 'gkiwp-2025' # GANTI DENGAN PASSWORD AMAN!
+    ports:
+      - "3306:3306" # <--- PERUBAHAN 1: Membuka Port MySQL untuk Workbench Access
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"] # <--- PERUBAHAN 2: Menambahkan Healthcheck
+      timeout: 20s
+      retries: 10
+    volumes:
+      # 1. Tempat file database SQL akan diimpor secara otomatis saat startup pertama kali
+      - ./backup-112425-gki-db.sql:/docker-entrypoint-initdb.d/backup-112425-gki-db.sql
+      # 2. Volume untuk menyimpan data database secara permanen
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:latest
+    container_name: gkilahairoi-wordpress-server
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: gkiwp-2025
+      WORDPRESS_DB_PASSWORD: 'gkiwp-2025' # HARUS SAMA DENGAN PASSWORD MYSQL_PASSWORD DI ATAS!
+      WORDPRESS_DB_NAME: gkiwp-2025-DB
+    depends_on:
+      db:
+        condition: service_healthy # <--- PERUBAHAN 3: Memastikan WP Menunggu DB Sehat
+    volumes:
+      # Mount folder media (uploads) yang sudah Anda siapkan
+      - ./wp-content/uploads:/var/www/html/wp-content/uploads
+      # Membuat volume kosong untuk file inti WP dan wp-content lainnya (plugin, themes)
+      - wp_data:/var/www/html
+
+volumes:
+  db_data:
+  wp_data:
