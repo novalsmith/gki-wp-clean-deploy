@@ -10,8 +10,8 @@ services:
       MYSQL_USER: gkiwp-2025
       MYSQL_PASSWORD: 'gkiwp-2025' # GANTI DENGAN PASSWORD AMAN!
       MYSQL_ROOT_PASSWORD: 'gkiwp-2025' # GANTI DENGAN PASSWORD AMAN!
-    # ports:
-    #   - "3306:3306" # <<< PERUBAHAN B: DINONAKTIFKAN UNTUK KEAMANAN PUBLIK DI VPS
+    ports: # <<< BARIS INI DITAMBAHKAN
+      - "127.0.0.1:3306:3306" # MENGHUBUNGKAN KE HOST VPS (HANYA DARI HOST)
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
       timeout: 20s
